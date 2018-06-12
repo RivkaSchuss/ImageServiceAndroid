@@ -1,5 +1,7 @@
 package com.example.yarin.imageserviceandroid;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,6 +15,8 @@ import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -30,6 +34,7 @@ public class PictureService extends Service{
     private Socket socket;
     private BroadcastReceiver receiver;
     private OutputStream outputStream;
+    private int count;
 
     @Nullable
     @Override
@@ -41,28 +46,52 @@ public class PictureService extends Service{
     public void onCreate() {
         super.onCreate();
 
-        try {
-            InetAddress serverAddr = InetAddress.getByName("127.0.0.1");
-            socket = new Socket(serverAddr, 8000);
-            try{
-                outputStream = socket.getOutputStream();
-                //FileInputStream fis = new FileInputStream(pic);
-                /////////
-                //output.write(imgbyte);
-                //output.flush();
-            }catch (Exception e) {
-                Log.e("TCP", "S: Error:", e);
-            }
+        Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        InetAddress serverAddr = InetAddress.getByName("10.0.2.2");
+                        socket = new Socket(serverAddr, 8600);
+                        try {
+                            outputStream = socket.getOutputStream();
+                            //FileInputStream fis = new FileInputStream(pic);
+                            /////////
+                            //output.write(imgbyte);
+                            //output.flush();
+                        } catch (Exception e) {
+                            Log.e("TCP", "S: Error:", e);
+                        }
+                    }catch (Exception e) {
+                        Log.e("TCP", "S: Error:", e);
+                    }
+                }
+            });
+            thread.start();
+
         }
-        catch (Exception e) {
-            Log.e("TCP", "S: Error:", e);
-        }
-    }
+
+
 
     public int onStartCommand(Intent intent, int flag, int startId) {
         Toast.makeText(this, "Service starting...", Toast.LENGTH_SHORT).show();
 
         establishWifi();
+
+        /*
+        final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default");
+        builder.setContentTitle("Picture Transfer").setContentText("Transfer in progress")
+                .setPriority(NotificationCompat.PRIORITY_LOW);
+        final int notify_id = 1;
+        for(int progressCounter = 0 ; progressCounter <= 100; progressCounter++) {
+            builder.setProgress(100, progressCounter, false);
+            notificationManager.notify(notify_id, builder.build());
+        }
+        builder.setProgress(0,0, false);
+        builder.setContentText("Download Complete...");
+        notificationManager.notify(notify_id, builder.build());
+        */
+
 
         return START_STICKY;
     }
@@ -112,7 +141,7 @@ public class PictureService extends Service{
             return;
         }
         File[] pics = dcim.listFiles();
-        int count =0;
+        this.count = 0;
         if (pics != null) {
             for (File pic : pics) {
                 try {
