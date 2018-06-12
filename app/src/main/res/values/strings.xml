@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">ImageServiceAndroid</string>
-    <string name="button_send">Send</string>
-    <string name="edit_message">Enter a message</string>
+    <string name="send_start_button">Start Service</string>
+    <string name="send_stop_button">Stop Service</string>
 </resources>

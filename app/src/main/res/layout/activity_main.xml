@@ -1,34 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <EditText
-        android:id="@+id/editText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:ems="10"
-        android:hint="@string/edit_message"
-        android:inputType="textPersonName"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/start_button"
+        android:layout_width="188dip"
+        android:layout_height="100dip"
+        android:layout_marginBottom="30dip"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@id/stop_button"
+        android:onClick="startService"
+        android:text="@string/send_start_button"
+        android:textSize="25sp" android:textStyle="normal"/>
 
     <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="256dp"
-        android:layout_marginStart="256dp"
-        android:layout_marginTop="16dp"
-        android:onClick="sendMessage"
-        android:text="@string/button_send"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/stop_button"
+        android:layout_width="188dip"
+        android:layout_height="100dip"
+        android:layout_centerInParent="true"
+        android:onClick="stopService"
+        android:text="@string/send_stop_button"
+        android:textSize="25sp" android:textStyle="normal"/>
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>

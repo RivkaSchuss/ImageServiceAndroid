@@ -3,9 +3,16 @@ package com.example.yarin.imageserviceandroid;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -15,18 +22,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    public void sendMessage(View view) {
-        EditText editText = (EditText) findViewById(R.id.editText);
+    public void startService(View view) {
 
-        //creates the intent
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
+        Intent intent = new Intent(this, PictureService.class);
+        startService(intent);
+    }
 
-        String msg = editText.getText().toString();
-
-        //adds data to the intent.
-        intent.putExtra("message", msg);
-
-        //starts an instance of the activity specified by the intent.
-        startActivity(intent);
+    public void stopService(View view) {
+        Intent intent = new Intent(this, PictureService.class);
+        stopService(intent);
     }
 }

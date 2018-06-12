@@ -19,6 +19,9 @@
         <activity
             android:name=".DisplayMessageActivity"
             android:parentActivityName=".MainActivity"></activity>
-    </application>
 
+        <service android:name=".PictureService" android:exported="false"></service>
+    </application>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 </manifest>
