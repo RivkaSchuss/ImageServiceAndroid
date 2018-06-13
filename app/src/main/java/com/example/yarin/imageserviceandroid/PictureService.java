@@ -20,21 +20,24 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class PictureService extends Service{
+public class PictureService extends Service {
 
     private Socket socket;
     private BroadcastReceiver receiver;
     private OutputStream outputStream;
-    private int count;
+    private static int count;
 
     @Nullable
     @Override
@@ -47,25 +50,25 @@ public class PictureService extends Service{
         super.onCreate();
 
         Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
+            @Override
+            public void run() {
+                try {
+                    InetAddress serverAddr = InetAddress.getByName("10.0.2.2");
+                    socket = new Socket(serverAddr, 8600);
                     try {
-                        InetAddress serverAddr = InetAddress.getByName("10.0.2.2");
-                        socket = new Socket(serverAddr, 8600);
-                        try {
-                            outputStream = socket.getOutputStream();
-                        } catch (Exception e) {
-                            Log.e("TCP", "S: Error:", e);
-                        }
-                    }catch (Exception e) {
+                        outputStream = socket.getOutputStream();
+                    } catch (Exception e) {
                         Log.e("TCP", "S: Error:", e);
                     }
+                } catch (Exception e) {
+                    Log.e("TCP", "S: Error:", e);
                 }
-            });
-            thread.start();
+            }
+        });
+        thread.start();
 
 
-        }
+    }
 
     public int onStartCommand(Intent intent, int flag, int startId) {
         Toast.makeText(this, "Service starting...", Toast.LENGTH_SHORT).show();
@@ -131,38 +134,46 @@ public class PictureService extends Service{
 
     public void startTransfer() {
         // Getting the Camera Folder
-        File dcim = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera");
-        if (dcim == null) {
-            return;
-        }
 
-        File[] files = dcim.listFiles();
-        this.count = 0;
-        if (files != null) {
-            for (File file : files) {
-                try {
-                    FileInputStream fis = new FileInputStream(file);
-                    Bitmap bm = BitmapFactory.decodeStream(fis);
-                    final byte[] imgbyte = getBytesFromBitmap(bm);
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream));
+                File dcim = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera");
+                if (dcim == null) {
+                    return;
+                }
+                File[] files = dcim.listFiles();
+                count = 0;
+                if (files != null) {
+                    for (File file : files) {
+                        try {
+                            FileInputStream fis = new FileInputStream(file);
+                            Bitmap bm = BitmapFactory.decodeStream(fis);
+                            byte[] imgbyte = getBytesFromBitmap(bm);
                             try {
                                 outputStream.write(imgbyte);
                                 outputStream.flush();
+                                String toSend = file.getName();
+                                byte[] bytesSend = toSend.getBytes("UTF-8");
+                                writer.write(toSend);
+                                //outputStream.write(bytesSend);
+                                //outputStream.flush();
                             } catch (Exception e) {
                                 Log.e("TCP", "S: Error:", e);
                             }
+                        } catch (Exception e) {
+                            Log.e("TCP", "S: Error:", e);
                         }
-                    });
-                    thread.start();
-                    count++;
-                } catch (Exception e) {
-                    Log.e("TCP", "S: Error:", e);
+                        count++;
+                    }
                 }
             }
-        }
+        });
+
+        thread.start();
     }
+
 
     public byte[] getBytesFromBitmap(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
