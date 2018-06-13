@@ -54,10 +54,6 @@ public class PictureService extends Service{
                         socket = new Socket(serverAddr, 8600);
                         try {
                             outputStream = socket.getOutputStream();
-                            //FileInputStream fis = new FileInputStream(pic);
-                            /////////
-                            //output.write(imgbyte);
-                            //output.flush();
                         } catch (Exception e) {
                             Log.e("TCP", "S: Error:", e);
                         }
@@ -68,9 +64,8 @@ public class PictureService extends Service{
             });
             thread.start();
 
+
         }
-
-
 
     public int onStartCommand(Intent intent, int flag, int startId) {
         Toast.makeText(this, "Service starting...", Toast.LENGTH_SHORT).show();
@@ -136,23 +131,33 @@ public class PictureService extends Service{
 
     public void startTransfer() {
         // Getting the Camera Folder
-        File dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        File dcim = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera");
         if (dcim == null) {
             return;
         }
-        File[] pics = dcim.listFiles();
+
+        File[] files = dcim.listFiles();
         this.count = 0;
-        if (pics != null) {
-            for (File pic : pics) {
+        if (files != null) {
+            for (File file : files) {
                 try {
-                    FileInputStream fis = null;
-                    fis = new FileInputStream(pic);
+                    FileInputStream fis = new FileInputStream(file);
                     Bitmap bm = BitmapFactory.decodeStream(fis);
-                    byte[] imgbyte = getBytesFromBitmap(bm);
-                    outputStream.write(imgbyte);
-                    outputStream.flush();
+                    final byte[] imgbyte = getBytesFromBitmap(bm);
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                outputStream.write(imgbyte);
+                                outputStream.flush();
+                            } catch (Exception e) {
+                                Log.e("TCP", "S: Error:", e);
+                            }
+                        }
+                    });
+                    thread.start();
                     count++;
-                } catch(Exception e) {
+                } catch (Exception e) {
                     Log.e("TCP", "S: Error:", e);
                 }
             }
