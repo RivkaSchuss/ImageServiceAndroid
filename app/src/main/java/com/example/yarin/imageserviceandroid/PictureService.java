@@ -152,13 +152,13 @@ public class PictureService extends Service {
                             Bitmap bm = BitmapFactory.decodeStream(fis);
                             byte[] imgbyte = getBytesFromBitmap(bm);
                             try {
-                                outputStream.write(imgbyte);
-                                outputStream.flush();
+
                                 String toSend = file.getName();
-                                byte[] bytesSend = toSend.getBytes("UTF-8");
-                                writer.write(toSend);
-                                //outputStream.write(bytesSend);
-                                //outputStream.flush();
+                                outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
+                                outputStream.flush();
+                                int i = imgbyte.length;
+                                outputStream.write(imgbyte, 0, i);
+                                outputStream.flush();
                             } catch (Exception e) {
                                 Log.e("TCP", "S: Error:", e);
                             }
@@ -166,6 +166,13 @@ public class PictureService extends Service {
                             Log.e("TCP", "S: Error:", e);
                         }
                         count++;
+                    }
+                    try {
+                        String toSend = "End\n";
+                        outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
+                        outputStream.flush();
+                    } catch (Exception e) {
+                        Log.e("TCP", "S: Error:", e);
                     }
                 }
             }
