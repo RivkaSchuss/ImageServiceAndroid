@@ -152,13 +152,25 @@ public class PictureService extends Service {
                             Bitmap bm = BitmapFactory.decodeStream(fis);
                             byte[] imgbyte = getBytesFromBitmap(bm);
                             try {
+                                int i = imgbyte.length;
 
-                                String toSend = file.getName();
+                                //sends the size of the array bytes.
+                                String toSend = imgbyte.length + "";
                                 outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
                                 outputStream.flush();
-                                int i = imgbyte.length;
-                                outputStream.write(imgbyte, 0, i);
+                                Thread.sleep(100);
+
+                                //sends the name of file.
+                                toSend = file.getName();
+                                outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
                                 outputStream.flush();
+                                Thread.sleep(100);
+
+                                //sends the array bytes.
+                                outputStream.write(imgbyte, 0, imgbyte.length);
+                                outputStream.flush();
+                                Thread.sleep(500);
+
                             } catch (Exception e) {
                                 Log.e("TCP", "S: Error:", e);
                             }
