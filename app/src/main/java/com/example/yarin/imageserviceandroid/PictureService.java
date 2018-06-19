@@ -1,6 +1,7 @@
 package com.example.yarin.imageserviceandroid;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -12,9 +13,11 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
@@ -37,7 +40,6 @@ public class PictureService extends Service {
     private Socket socket;
     private BroadcastReceiver receiver;
     private OutputStream outputStream;
-    private static int count;
 
     @Nullable
     @Override
@@ -75,22 +77,6 @@ public class PictureService extends Service {
 
         establishWifi();
 
-        /*
-        final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        final NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default");
-        builder.setContentTitle("Picture Transfer").setContentText("Transfer in progress")
-                .setPriority(NotificationCompat.PRIORITY_LOW);
-        final int notify_id = 1;
-        for(int progressCounter = 0 ; progressCounter <= 100; progressCounter++) {
-            builder.setProgress(100, progressCounter, false);
-            notificationManager.notify(notify_id, builder.build());
-        }
-        builder.setProgress(0,0, false);
-        builder.setContentText("Download Complete...");
-        notificationManager.notify(notify_id, builder.build());
-        */
-
-
         return START_STICKY;
     }
 
@@ -112,16 +98,25 @@ public class PictureService extends Service {
         theFilter.addAction("android.net.wifi.STATE_CHANGE");
         this.receiver = new BroadcastReceiver() {
 
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onReceive(Context context, Intent intent) {
                 WifiManager wifiManager = (WifiManager) context
                         .getSystemService(Context.WIFI_SERVICE);
                 NetworkInfo networkInfo = intent.getParcelableExtra(wifiManager.EXTRA_NETWORK_INFO);
+
+                final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationChannel channel = new NotificationChannel("default", "progress", NotificationManager.IMPORTANCE_DEFAULT);
+                notificationManager.createNotificationChannel(channel);
+                final NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "default");
+                builder.setContentTitle("Picture Transfer").setContentText("Transfer in progress").setSmallIcon(R.drawable.ic_launcher_background);
+
+
                 if (networkInfo != null) {
                     if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                         //get the different network states
                         if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
-                            startTransfer(); // Starting the Transfer
+                            startTransfer(builder, notificationManager); // Starting the Transfer
                         }
                     }
                 }
@@ -132,19 +127,17 @@ public class PictureService extends Service {
         this.registerReceiver(this.receiver, theFilter);
     }
 
-    public void startTransfer() {
+    public void startTransfer(final NotificationCompat.Builder builder, final NotificationManager manager) {
         // Getting the Camera Folder
-
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream));
                 File dcim = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera");
                 if (dcim == null) {
                     return;
                 }
                 File[] files = dcim.listFiles();
-                count = 0;
+                int count = 0;
                 if (files != null) {
                     for (File file : files) {
                         try {
@@ -178,12 +171,24 @@ public class PictureService extends Service {
                             Log.e("TCP", "S: Error:", e);
                         }
                         count++;
+                        int progress = (count/files.length) * 100;
+                        builder.setProgress(100, progress, false);
+                        builder.setContentText(progress + "%");
+                        manager.notify(1, builder.build());
+
                     }
                     try {
                         String toSend = "End\n";
                         outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
                         outputStream.flush();
+                        builder.setContentTitle("Transfer Completed");
+                        builder.setContentText("Your photos have been backed up!");
+                        manager.notify(1, builder.build());
+
                     } catch (Exception e) {
+                        builder.setContentTitle("Error");
+                        builder.setContentText("Your photos could not be backed up!");
+                        manager.notify(1, builder.build());
                         Log.e("TCP", "S: Error:", e);
                     }
                 }

@@ -5,27 +5,48 @@
 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#0d839e"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <TextView
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="28dp"
+        android:text="Image Service"
+        android:textAllCaps="true"
+        android:textSize="55sp"
+        android:textStyle="bold" />
+
     <Button
         android:id="@+id/start_button"
-        android:layout_width="188dip"
-        android:layout_height="100dip"
-        android:layout_marginBottom="30dip"
+        android:layout_width="216dp"
+        android:layout_height="117dp"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_above="@id/stop_button"
+        android:layout_marginBottom="198dp"
+        android:background="@android:color/background_dark"
         android:onClick="startService"
         android:text="@string/send_start_button"
-        android:textSize="25sp" android:textStyle="normal"/>
+        android:textColor="@android:color/background_light"
+        android:textSize="25sp"
+        android:textStyle="normal"
+        />
 
     <Button
         android:id="@+id/stop_button"
-        android:layout_width="188dip"
-        android:layout_height="100dip"
-        android:layout_centerInParent="true"
+        android:layout_width="220dp"
+        android:layout_height="111dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="57dp"
+        android:background="@android:color/background_dark"
         android:onClick="stopService"
         android:text="@string/send_stop_button"
-        android:textSize="25sp" android:textStyle="normal"/>
+        android:textColor="@android:color/background_light"
+        android:textSize="25sp"
+        android:textStyle="normal" />
 
 </RelativeLayout>
