@@ -41,12 +41,20 @@ public class PictureService extends Service {
     private BroadcastReceiver receiver;
     private OutputStream outputStream;
 
+    /**
+     * on bind function
+     * @param intent the intent
+     * @return a binder
+     */
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
+    /**
+     * the function invoked when the service is created.
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -72,7 +80,15 @@ public class PictureService extends Service {
 
     }
 
+    /**
+     * the function invoked when the service is started.
+     * @param intent the intent
+     * @param flag a flag
+     * @param startId a start id
+     * @return the sticky
+     */
     public int onStartCommand(Intent intent, int flag, int startId) {
+        //creates the starting toast
         Toast.makeText(this, "Service starting...", Toast.LENGTH_SHORT).show();
 
         establishWifi();
@@ -80,11 +96,15 @@ public class PictureService extends Service {
         return START_STICKY;
     }
 
+    /**
+     * the function invoked when the service is stopped.
+     */
     public void onDestroy() {
 
         super.onDestroy();
         Toast.makeText(this, "Service ending...", Toast.LENGTH_SHORT).show();
 
+        //closes the connection
         try {
             this.socket.close();
         } catch (IOException e) {
@@ -92,7 +112,12 @@ public class PictureService extends Service {
         }
     }
 
+    /**
+     * establishes the wifi check, and invokes the function to transfer images if
+     * there is a a wifi connection
+     */
     public void establishWifi() {
+        //creates a receiver to check the wifi
         final IntentFilter theFilter = new IntentFilter();
         theFilter.addAction("android.net.wifi.supplicant.CONNECTION_CHANGE");
         theFilter.addAction("android.net.wifi.STATE_CHANGE");
@@ -105,16 +130,19 @@ public class PictureService extends Service {
                         .getSystemService(Context.WIFI_SERVICE);
                 NetworkInfo networkInfo = intent.getParcelableExtra(wifiManager.EXTRA_NETWORK_INFO);
 
-                final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                NotificationChannel channel = new NotificationChannel("default", "progress", NotificationManager.IMPORTANCE_DEFAULT);
+                final NotificationManager notificationManager = (NotificationManager)
+                        context.getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationChannel channel = new NotificationChannel("default",
+                        "progress", NotificationManager.IMPORTANCE_DEFAULT);
                 notificationManager.createNotificationChannel(channel);
-                final NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "default");
-                builder.setContentTitle("Picture Transfer").setContentText("Transfer in progress").setSmallIcon(R.drawable.ic_launcher_background);
-
-
+                final NotificationCompat.Builder builder =
+                        new NotificationCompat.Builder(context, "default");
+                builder.setContentTitle("Picture Transfer")
+                        .setContentText("Transfer in progress")
+                        .setSmallIcon(R.drawable.ic_launcher_background);
                 if (networkInfo != null) {
                     if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
-                        //get the different network states
+                        //gets the different network states
                         if (networkInfo.getState() == NetworkInfo.State.CONNECTED) {
                             startTransfer(builder, notificationManager); // Starting the Transfer
                         }
@@ -127,12 +155,20 @@ public class PictureService extends Service {
         this.registerReceiver(this.receiver, theFilter);
     }
 
+    /**
+     * starts the transfer of the pictures in a new thread.
+     * @param builder the notification builder
+     * @param manager the notification manager
+     */
     public void startTransfer(final NotificationCompat.Builder builder, final NotificationManager manager) {
         // Getting the Camera Folder
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                File dcim = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera");
+                File dcim =
+                        new File(Environment
+                                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
+                                "Camera");
                 if (dcim == null) {
                     return;
                 }
@@ -149,13 +185,15 @@ public class PictureService extends Service {
 
                                 //sends the size of the array bytes.
                                 String toSend = imgbyte.length + "";
-                                outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
+                                outputStream.write(toSend.getBytes(),
+                                        0, toSend.getBytes().length);
                                 outputStream.flush();
                                 Thread.sleep(100);
 
                                 //sends the name of file.
                                 toSend = file.getName();
-                                outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
+                                outputStream.write(toSend.getBytes(),
+                                        0, toSend.getBytes().length);
                                 outputStream.flush();
                                 Thread.sleep(100);
 
@@ -172,12 +210,14 @@ public class PictureService extends Service {
                         }
                         count++;
                         int progress = (count/files.length) * 100;
+                        //updates the progress bar
                         builder.setProgress(100, progress, false);
                         builder.setContentText(progress + "%");
                         manager.notify(1, builder.build());
 
                     }
                     try {
+                        //when the service is done sending pictures:
                         String toSend = "End\n";
                         outputStream.write(toSend.getBytes(), 0, toSend.getBytes().length);
                         outputStream.flush();
@@ -194,11 +234,15 @@ public class PictureService extends Service {
                 }
             }
         });
-
         thread.start();
     }
 
 
+    /**
+     * gets bytes from the bitmap
+     * @param bitmap
+     * @return
+     */
     public byte[] getBytesFromBitmap(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 70, stream);

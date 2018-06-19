@@ -16,18 +16,30 @@ import java.net.Socket;
 
 public class MainActivity extends AppCompatActivity {
 
+    /**
+     * the function called when the application is activated.
+     * @param savedInstanceState the instance state save
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
 
+    /**
+     * the function called when the start service button is pressed
+     * @param view the current view
+     */
     public void startService(View view) {
 
         Intent intent = new Intent(this, PictureService.class);
         startService(intent);
     }
 
+    /**
+     * the function called when the stop service button is pressed
+     * @param view the current view
+     */
     public void stopService(View view) {
         Intent intent = new Intent(this, PictureService.class);
         stopService(intent);
